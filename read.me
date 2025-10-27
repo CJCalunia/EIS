@@ -1,0 +1,33 @@
+# EIS Playwright Tests
+
+Simple guide to run the Playwright tests in this repo.
+
+Prerequisites
+- Node.js (v16+)
+- npm
+
+Install
+```sh
+npm install
+npx playwright install
+```
+
+Environment
+Create a .env file with:
+- EIS_PORTAL — portal URL
+- EMAIL_CREDS — login email
+- PASS_CREDS — login password
+- DASHBOARD_API — (optional)
+
+Run tests
+- Run all: `npx playwright test`
+- Run spec: `npx playwright test tests/EIS_Specs/EIS.spec.ts`
+- Run by title: `npx playwright test -g "TS-EIS-112"`
+- Debug: `npx playwright test --debug`
+- Show report: `npx playwright show-report playwright-report`
+
+Key files
+- tests/EIS_Specs/EIS.spec.ts — tests
+- tests/EIS_Fixtures/EIS.ts — helpers/fixtures
+- playwright.config.ts — config
+- .env — env variables
