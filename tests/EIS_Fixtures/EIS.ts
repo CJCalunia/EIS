@@ -88,8 +88,8 @@ export class EIS_Dashboards extends EIS_Login {
             count = `${count - 2} ${dashboardStore.name}`;
         }
         else {
-            dashboardStore.graphCount = count;
-            count = dashboardStore.name;
+            dashboardStore.graphCount = count - 2;
+            count = `${dashboardStore.name}`;
         }
         return count;
     }   
@@ -154,7 +154,7 @@ export class EIS_Dashboards extends EIS_Login {
         const dashboard = await this.get_favorites();
         const favorites = dashboard.find((fav: { collectionId: number; }) => fav.collectionId === dashboardStore.collectionId);
         if (favorites) {
-            if (dashboardStore.graphCount > 0) { 
+            if (dashboardStore.graphCount > 2) { 
                 await expect(this.page.getByText(`${dashboardStore.graphCount}${dashboardStore.name}`).first()).toBeVisible();
             }
             else {
