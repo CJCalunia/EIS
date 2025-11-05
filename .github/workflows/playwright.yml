@@ -1,0 +1,47 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  playwright-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests (HTML + list reporters)
+        run: |
+          npx playwright test --reporter=list,html
+        env:
+          EIS_PORTAL: ${{ secrets.EIS_PORTAL }}
+          EMAIL_CREDS: ${{ secrets.EMAIL_CREDS }}
+          PASS_CREDS: ${{ secrets.PASS_CREDS }}
+          DASHBOARD_API: ${{ secrets.DASHBOARD_API }}
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Upload test-results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results
