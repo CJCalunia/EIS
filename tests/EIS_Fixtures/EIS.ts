@@ -58,13 +58,12 @@ export class EIS_Dashboards extends EIS_Login {
     }
 
     async get_favorites () {
-        await this.page.reload();
         const favorites = this.page.waitForResponse(
             res => res.url()
             .includes('/eis/v1.0/favorites/dashboards?') 
             && res.status() === 200);
         const data = await (await favorites).json();
-        return data.response.rows;
+        return data.response;
     }
 
     async get_dashboards () {
@@ -147,12 +146,17 @@ export class EIS_Dashboards extends EIS_Login {
         await this.get_dashboards();
         await this.page.goto(this.page.url() + `/${dashboardStore.collectionId}`);
     }
-    async addTo_Favorites () {  
+
+    async clickStar_icon () { 
         await this.page.getByRole('button').filter({ hasText: /^$/ }).nth(1).click();
         await this.page.getByRole('main').getByText('Executive Information System').click();
         await expect(this.page.getByRole('heading', { name: 'All Dashboard' })).toBeVisible();
+    }
+    async addTo_Favorites () {  
+        await this.clickStar_icon();
+        await this.page.reload();
         const dashboard = await this.get_favorites();
-        const favorites = dashboard.find((fav: { collectionId: number; }) => fav.collectionId === dashboardStore.collectionId);
+        const favorites = dashboard.rows.find((fav: { collectionId: number; }) => fav.collectionId === dashboardStore.collectionId);
         if (favorites) {
             if (dashboardStore.graphCount > 2) { 
                 await expect(this.page.getByText(`${dashboardStore.graphCount}${dashboardStore.name}`).first()).toBeVisible();
@@ -162,4 +166,34 @@ export class EIS_Dashboards extends EIS_Login {
             }
         }
     }
+
+    async remove_Action(favorites: number) {
+            await this.clickStar_icon();
+            await this.page.reload();
+            const dashboard = await this.get_favorites();
+            const removedFav = dashboard.rows.find((fav: { collectionId: number; }) => fav.collectionId === favorites);
+            expect(removedFav).toBeUndefined();
+    }
+    async removeFrom_Favorites () { 
+       const dashboard = await this.get_favorites();
+       if (dashboard.rows.length > 0) {
+           const favorites = dashboard.rows[0].collectionId;
+           await this.page.goto(this.page.url() + `/${favorites}`);
+           await this.remove_Action(favorites);
+       }
+       else
+        {
+            await this.page.reload();
+            await this.goto_collection();
+            await this.addTo_Favorites();
+            await this.page.reload();
+            const dashboard = await this.get_favorites();
+            const favorites = dashboard.rows[0].collectionId;
+            await this.page.goto(this.page.url() + `/${favorites}`);
+            await this.remove_Action(favorites);
+        }
+
+   }
+
+
 }

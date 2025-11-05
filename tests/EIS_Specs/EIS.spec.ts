@@ -48,5 +48,9 @@ test.describe('EIS Portal Login', () => {
         await dashboardPage.addTo_Favorites();
         console.log(`'\x1b[32m%s\x1b[0m'`, 'Added to Favorites Successfully');
     });
+    test('TS-EIS-114', async ({ page }) => {
+        await dashboardPage.removeFrom_Favorites();
+        console.log(`'\x1b[32m%s\x1b[0m'`, 'Removed from Favorites Successfully');
+    });
 });
     
