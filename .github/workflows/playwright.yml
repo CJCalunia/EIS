@@ -1,76 +1,27 @@
-name: CI - Playwright Tests
-
+name: Playwright Tests
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-
+    branches: [ main, master ]
 jobs:
   test:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Use Node.js 18
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Validate required secrets
-        shell: bash
-        run: |
-          if [ -z "${{ secrets.EIS_PORTAL }}" ]; then
-            echo "ERROR: secrets.EIS_PORTAL is not set. Set it in repository Settings → Secrets → Actions."
-            exit 1
-          fi
-          if [ -z "${{ secrets.EMAIL_CREDS }}" ]; then
-            echo "ERROR: secrets.EMAIL_CREDS is not set."
-            exit 1
-          fi
-          if [ -z "${{ secrets.PASS_CREDS }}" ]; then
-            echo "ERROR: secrets.PASS_CREDS is not set."
-            exit 1
-          fi
-      - name: Validate EIS_PORTAL is a valid URL
-        shell: bash
-        env:
-          EIS_PORTAL: ${{ secrets.EIS_PORTAL }}
-        run: |
-          node -e "try { new URL(process.env.EIS_PORTAL); console.log('EIS_PORTAL looks like a valid URL'); } catch(e){ console.error('EIS_PORTAL is not a valid URL:', process.env.EIS_PORTAL); process.exit(1); }"
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests (list + html reporter)
-        env:
-          EIS_PORTAL: ${{ secrets.EIS_PORTAL }}
-          EMAIL_CREDS: ${{ secrets.EMAIL_CREDS }}
-          PASS_CREDS: ${{ secrets.PASS_CREDS }}
-          DASHBOARD_API: ${{ secrets.DASHBOARD_API }}
-        run: npx playwright test --reporter=list,html
-
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report
-
-      - name: Upload test-results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: test-results
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
